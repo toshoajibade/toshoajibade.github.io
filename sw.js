@@ -14,24 +14,41 @@ self.addEventListener('install', (event) => {
 });
 
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(caches.match(event.request).then((response) => {
-    // caches.match() always resolves
-    // but in case of success response will have value
-    if (response !== undefined) {
-      return response;
-    } else {
-      return fetch(event.request).then((response) => {
-        // response may be used only once
-        // we need to save clone to put one copy in cache
-        // and serve second one
+self.addEventListener('fetch', function (event) {
+  if (event.request.url.includes('/api/v5/convert')) {
+    event.respondWith(
+      caches.match(event.request).then(function(response) {
+        // Check cache but fall back to network
+        return response || fetch(event.request);
+      })
+    );
+  } else {
+    event.respondWith(caches.match(event.request).then(function (response) {
+      // caches.match() always resolves
+      // but in case of success response will have value
+      if (response !== undefined) {
         return response;
-      }).catch(() => {
-        console.log('error')
-      });
-    }
-  }));
+      } else {
+        return fetch(event.request).then(function (response) {
+          // response may be used only once
+          // we need to save clone to put one copy in cache
+          // and serve second one
+          let responseClone = response.clone();
+
+          caches.open('v1').then(function (cache) {
+            cache.put(event.request, responseClone);
+          });
+          return response;
+        }).catch(function () {
+          console.log('error')
+        });
+      }
+    }));
+  }
 });
+
+
+
 
 
 

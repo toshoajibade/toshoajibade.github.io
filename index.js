@@ -30,25 +30,8 @@ let showConverted = () => {
     let toCurrency = encodeURIComponent(document.getElementsByTagName("option")[y].value);
     let currencyPair = fromCurrency + '_' + toCurrency;
     let url = `https://free.currencyconverterapi.com/api/v5/convert?q=${currencyPair}&compact=y`;
-    let { conversionRate } = getExchangeRate(currencyPair);
     if (inputAmount.value > 0) {
-        if (conversionRate === undefined) {
-            fetch(url)
-                .then((response) => {
-                    return response.json();
-                }).then((newresponse) => {
-                    let conversionRate = newresponse[currencyPair].val;
-                    console.log(conversionRate);
-                    let outputAmount = (conversionRate * inputAmount.value).toFixed(2);
-                    let conversionResult = `${fromCurrency}${inputAmount.value} equals ${toCurrency}${outputAmount}`;
-                    insertData(currencyPair, conversionRate);
-                    result.innerHTML = conversionResult;
-                })
-        } else {
-            let outputAmount = (conversionRate * inputAmount.value).toFixed(2);
-            let conversionResult = `${fromCurrency}${inputAmount.value} equals ${toCurrency}${outputAmount}`;
-            result.innerHTML = conversionResult;
-        }
+       getExchangeRate(currencyPair, inputAmount,url,fromCurrency,toCurrency);
     } else {
         result.innerHTML = 'Please enter a valid number'
      }
@@ -88,16 +71,11 @@ function insertData(currencyPair, conversionRate) {
 
 
 
-function getExchangeRate(currencyPair) {           
+function getExchangeRate(currencyPair, inputAmount,url,fromCurrency,toCurrency) {           
     let request = this.indexedDB.open("converter", 4);
     request.onerror = function (event) {
         console.log('unsuccessful')
     };
-    request.onupgradeneeded = function (event) {
-        // Save the IDBDatabase interface 
-        let db = event.target.result;
-
-    }
     request.onsuccess = function (event) {
         let db = event.target.result;
         let tx = db.transaction("currencyConverter", "readonly");
@@ -105,10 +83,24 @@ function getExchangeRate(currencyPair) {
         let object = store.get(currencyPair);
         object.onsuccess = function () {
         let data = object.result;
-        console.log(data)
+        if (data == null) {
+            fetch(url)
+                .then((response) => {
+                    return response.json();
+                }).then((newresponse) => {
+                    let conversionRate = newresponse[currencyPair].val;
+                    console.log(conversionRate);
+                    let outputAmount = (conversionRate * inputAmount.value).toFixed(2);
+                    let conversionResult = `${fromCurrency}${inputAmount.value} equals ${toCurrency}${outputAmount}`;
+                    insertData(currencyPair, conversionRate);
+                    result.innerHTML = conversionResult;
+                })
+        } else {
+            const {currencyPair, conversionRate} = data;
+            let outputAmount = (conversionRate * inputAmount.value).toFixed(2);
+            let conversionResult = `${fromCurrency}${inputAmount.value} equals ${toCurrency}${outputAmount}`;
+            result.innerHTML = conversionResult;
+        }
        
-    }
-    
-    }
-    return { conversionRate: undefined }
+    }}
 }
