@@ -1,0 +1,22 @@
+.btn {
+    width: 50%;
+    align-self: center;
+}
+.btn-wrapper {
+    display: flex;
+    justify-content: space-around;
+}
+.header-wrapper {
+    display: flex;
+    justify-content: space-around;
+}
+.resultWrapper {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px
+}
+
+.result {
+    color: rgb(59, 59, 235);
+    font-size: 30px
+}
